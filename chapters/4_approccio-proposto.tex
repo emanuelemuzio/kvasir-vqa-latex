@@ -6,6 +6,7 @@
 In questo capitolo verranno presentate le proposte sperimentali sviluppate per indagare le capacità dei modelli di VQA nel contesto medico del \textit{KvasirVQA}. 
 
 A partire dalle tecniche e dai modelli analizzati nei capitoli precedenti, sono state definite strategie sperimentali volte a testare l'efficacia di diverse architetture e approcci, includendo sia modelli basati su tecniche tradizionali, sia soluzioni più recenti che sfruttano il prompting, il \textit{Chain-of-Thought} e i transformers. 
+A supporto di queste operazioni, è stato effettuato anche un trattamento di pulizia e \textit{data augmentation}, per rendere possibili alcuni esperimenti e tentare di migliorare la qualità del dataset.
 L'obiettivo principale è quello di esplorare le potenzialità dei modelli multimodali nell'elaborazione di immagini diagnostiche e domande strutturate, valutandone i limiti e le possibili aree di miglioramento.
 
 Le proposte sperimentali includono:
@@ -14,10 +15,88 @@ Le proposte sperimentali includono:
     \item Adozione di architetture personalizzate per verificare l'efficacia sui dati a disposizione.
     \item Variazioni procedurali per affrontare il task in forma di classificazione multilabel, oltre che multiclasse.
     \item Utilizzo di un'architettura moderna e basata su transformers, addestrata per adattarsi al contesto del KvasirVQA.
+    \item Operazioni di data augmentation sulle classi scarsamente bilanciate e correzione di imprecisioni testuali.
 \end{itemize}
 
 L'obiettivo di queste proposte è non solo di testare l'efficacia di tecniche avanzate, ma anche di fornire insight utili per l'ottimizzazione dei modelli di VQA in ambito medico, contribuendo così a colmare le lacune identificate nella ricerca attuale.
 I risultati ottenuti verranno discussi nel capitolo successivo, con un'analisi dettagliata delle prestazioni e del confronto tra le diverse configurazioni sperimentali.
+
+\section{Analisi, limiti e trattamento dei dati}
+
+L'analisi approfondita del dataset KvasirVQA ha messo in evidenza alcune criticità rilevanti. Tra queste, è emersa per esempio la presenza di dati nulli all'interno dei metadati, che aggregano domande e risposte associate a ciascuna immagine, e una distribuzione sbilanciata delle risposte uniche, con alcune categorie sovrarappresentate rispetto ad altre. 
+Questi aspetti, pur rappresentando delle limitazioni, offrono spunti di riflessione sulle peculiarità del dataset, che saranno approfonditi nelle sezioni successive.
+
+\subsubsection{Imprecisioni testuali}
+
+Sono emerse delle incongruenze riguardanti le annotazioni di alcune domande o risposte, probabilmente dovute a errori di battitura o sviste, per esempio:
+
+\begin{itemize}
+    \item Alcune righe riportano la dicitura "instrumnets" piuttosto che "instruments;
+    \item Alcune righe riportano la dicitura "$>$20" piuttosto che "$>$20mm";
+    \item Alcune righe riportano la dicitura "rigth" piuttosto che "right".
+\end{itemize}
+
+Si suppone che queste impurità verranno corrette con dei rilasci futuri di versioni più ricche e rifinite del dataset. 
+Per l'attività di ricerca della tesi, queste righe sono state pulite e una copia del file in formato CSV bonificato verrà mantenuta ed utilizzata per addestramenti e test.
+
+\subsubsection{Presenza di dati nulli}
+
+All'interno del file contenente i metadati sono state ritrovate cinquantuno righe con dati nulli, che reputiamo un refuso del dataset e sono state eliminate prima di ulteriori elaborazioni, modifiche o considerazioni sul dataset. 
+
+La rimozione ha portato il numero effettivo di righe del dataset a 58.798, permettendoci di proseguire nella nostra ricerca.
+
+\subsubsection{Domande}
+
+Come possiamo vedere dalla tabella presentata precedentemente, sono presenti in totale diciannove domande distinte all'interno del dataset e con riferimenti ai tre principali punti di interesse che possiamo ritrovare nelle foto, ovvero anomalie, strumenti e \textit{landmark} anatomici.
+Nel KvasirVQA possiamo trovare dunque domande riguardo:
+
+\begin{itemize}
+    \item Domande relative al posizionamento;
+    \item Presenza nell'immagine;
+    \item Conteggio degli oggetti d'interesse;
+    \item Presenza artefatti software;
+    \item Domande relative a caratteristiche dei ritrovamenti.
+\end{itemize}
+
+È stata inoltre verificata una lunghezza massima in parole di tredici per le domande, dato utile per stabilire eventuali parametri per la tokenizzazione della componente testuale.
+
+\subsubsection{Risposte e Data Augmentation}
+
+Prima della bonifica testuale, sono state rilevate all'interno del dataset 501 risposte distinte alle domande presenti, diventate 469 dopo la correzione delle imprecisioni che sono state notate durante lo studio del KvasirVQA. 
+Parallelamente all'osservazione sulle 469 risposte uniche, è stato rilevato quello che possiamo considerare un vocabolario di, in totale, 58 opzioni uniche combinabili ad esempio nelle risposte a domanda multipla. 
+Dato l'alto numero di risposte diverse, è stata ipotizzata una distribuzione sbilanciata di queste all'interno dei dati. 
+Nonostante non sia totalmente rappresentativo della distribuzione delle risposte uniche, possiamo comprendere meglio lo sbilanciamento con il seguente grafico delle frequenze dei singoli vocaboli nelle risposte:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\linewidth]{static/grafico_frequenze.png}
+    \label{fig:enter-label}
+\end{figure}
+
+Questo dato è stato di particolare rilevanza nel trattamento del problema in forma chiusa, dal momento che è stato necessario generare sinteticamente nuovi dati a partire da quelli già presenti, distinguendo però l'operazione in due sotto-operazioni distinte, ovvero: \textit{data augmentation} per righe con domande relative alla posizione, e \textit{data augmentation} per tutti gli altri tipi di domanda.
+Comunemente a entrambe le procedure è stato fatto in modo che ogni risposta comparisse comunque in almeno otto righe del dataset, così da fornire un minimo esempio, seppur esiguo, al modello, da cui imparare per una corretta classificazione riguardo le coppie di domande e risposte meno frequenti.
+Considerando una già menzionata soglia minima di otto righe come frequenza per ogni risposta, sono state generate in totale 2096 nuove righe.
+Sebbene la soglia sia esigua, per limitazioni computazionali non è stato possibile fornire una significativa rappresentazione a ognuna delle 496 risposte singole. 
+Tuttavia, ipotizziamo che l'augmentation delle righe contenenti le risposte combinate possa essere una base solida.
+Le osservazioni sulla distribuzione dei dati e sulle frequenze sono state fondamentali, dal momento che da queste è scaturita la proposta sperimentale di porre il problema nella forma di un task di classificazione multilabel, approccio che verrà approfondito nel capitolo successivo.
+
+\subsubsection{Domande posizionali}
+
+Per quanto riguarda le domande posizionali, sono state applicate due trasformazioni distinte dal \textit{framework PyTorch}:
+
+\begin{itemize}
+    \item \textit{ColorJitter}, modificando i parametri dell'immagine come luminosità, contrasto e saturazione con una variazione massima del dieci per cento, e la gradazione (\textit{hue}) del cinque per cento;
+    \item \textit{GaussianBlur} per introdurre rumore all'interno delle immagini.
+\end{itemize}
+
+\subsubsection{Altre domande}
+
+Per il resto delle domande, sono state applicate le seguenti trasformazioni:
+
+\begin{itemize}
+    \item \textit{RandomHorizontalFlip}, ovvero un ribaltamento orizzontale dell'immagine con probabilità che può avvenire con una probabilità p=0.5;
+    \item \textit{RandomRotation}, con una rotazione minima tra 0\degree e 270\degree.
+\end{itemize}
 
 \section{Classificazione multilabel}
 
@@ -132,7 +211,9 @@ Per il task multiclasse, è stata utilizzata la \textit{Cross Entropy Loss}, men
 
 Per evitare l'overfitting, è stato applicato un meccanismo di \textit{early stop} che prevede una soglia di tolleranza, un delta e un minimo di epoche, in modo da interrompere l'addestramento in caso di mancati miglioramenti ripetuti, ma garantendo comunque un minimo di epoche prima dell'attivazione del meccanismo.
 
-\begin{lstlisting}
+\newpage
+
+\begin{lstlisting}[language=Python]
 class EarlyStopper: 
     def __init__(self, patience=1, min_delta=0, min_epochs=0):
         self.min_epochs = min_epochs
@@ -140,18 +221,18 @@ class EarlyStopper:
         self.min_delta = min_delta
         self.counter = 0
         self.epoch_counter = 0
-        self.min_validation_loss = float('inf')
+        self.min_val_loss = float('inf')
         
-    def early_stop(self, validation_loss):
+    def early_stop(self, val_loss):
         self.epoch_counter += 1
         
         if self.epoch_counter < self.min_epochs:
             return False
         
-        if validation_loss < self.min_validation_loss:
-            self.min_validation_loss = validation_loss
+        if val_loss < self.min_val_loss:
+            self.min_val_loss = val_loss
             self.counter = 0
-        elif validation_loss >= (self.min_validation_loss + self.min_delta):
+        elif val_loss >= (self.min_val_loss + self.min_delta):
             self.counter += 1
             if self.counter >= self.patience:
                 return True
@@ -258,7 +339,7 @@ Il \textit{templating} è stato applicato utilizzando una serie di schemi predef
 \subsubsection{Template Utilizzati}
 
 Di seguito alcuni esempi di template adottati:
-\begin{lstlisting}
+\begin{lstlisting}[breaklines=true]
 Template-1:
 
 You are given the following question:
@@ -286,7 +367,7 @@ La tecnica \textit{Chain-of-Thought} è stata impiegata per stimolare il ragiona
 
 I prompt per il CoT sono stati progettati per incoraggiare i modelli a esplicitare il ragionamento. Alcuni esempi includono:
 
-\begin{lstlisting}
+\begin{lstlisting}[breaklines=true]
 
 CoT-1:
 
