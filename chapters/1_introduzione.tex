@@ -1,0 +1,141 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\section{Contesto}
+
+Sin dall'introduzione delle \textit{Convolutional Neural Network} (CNN) e delle architetture basate sui \textit{Transformers}, il modo di affrontare sia i classici task di \textit{Computer Vision} (CV) che di \textit{Natural Language Processing} (NLP) ha subito pesanti rivoluzioni e compiuto notevoli passi in avanti.
+
+Da un lato, infatti, le CNN si sono affermate soprattutto in task di CV come l'\textit{Optical Character Recognition} (OCR), classificazione di immagini, e \textit{Object Detection}, grazie alla loro capacità di catturare le caratteristiche salienti delle immagini senza necessità di feature engineering manuale. 
+Dall'altro, le architetture basate sui transformers hanno rivoluzionato il modo di vedere l'elaborazione testuale grazie a un complesso sistema di \textit{self-attention} che elabora le parole in parallelo piuttosto che sequenzialmente, come le classiche reti \textit{Long Short-Term Memory} (LSTM).
+
+La combinazione delle CNN per l'estrazione di caratteristiche visive e dei transformers per l'elaborazione del linguaggio naturale ha consentito lo sviluppo di modelli multimodali come quelli utilizzati nel \textit{Visual Question Answering} (VQA), un task a metà strada tra i campi di CV ed NLP. 
+I modelli che si occupano di affrontare questo particolare tipo di task si pongono in una più ampia famiglia di modelli multimodali, in particolare nel sottogruppo dei \textit{Vision-Language Models} (VLM).
+
+\section{Storia del VQA}
+
+Il campo di ricerca relativo al VQA è di recente introduzione e in appena una decina di anni è riuscito a fare progressi notevoli grazie allo sfruttamento di tecnologie e approcci trasversali al problema.
+
+I primi passi fatti per la ricerca si pongono come principio cardine la capacità di creare modelli che sappiano ragionare di fronte a domande su immagini, la cui risposta attinga a informazioni contenute nell'immagine stessa, senza necessità di utilizzare una \textit{Knowledge Base} (KB) esterna e focalizzandosi sull'importanza di andare a ricercare le informazioni necessarie per rispondere all'interno dell'immagine. 
+
+Parallelamente, vengono ovviamente compiuti diversi sforzi per raccogliere e formare dei dataset adeguati, come il \textit{Visual Genome} \cite{DBLP:journals/corr/KrishnaZGJHKCKL16} o il dataset rilasciato insieme al primo paper di ricerca sull'argomento \cite{DBLP:journals/corr/AntolALMBZP15} che porta lo stesso nome del suo task di riferimento. Un approfondimento sui dataset che hanno acquisito particolare rilevanza per il task verrà fatto nel capitolo della tesi dedicato ai dataset.
+
+A livello tecnico, in particolare, troviamo largo uso inizialmente di approcci quantomeno simili per la fusione multimodale e la comprensione delle informazioni presenti nell'immagine.
+Introduciamo adesso brevemente alcune tecniche di risoluzione del problema che, seppur superate o rinnovate con ulteriori innovazioni in seguito, hanno costituito al tempo il fondamento della comprensione contestuale di immagini e testo. 
+
+\subsection{Combinazione LSTM e CNN}
+
+Viene delineata una prima baseline in \cite{DBLP:journals/corr/AntolALMBZP15} che utilizza un  per la parte testuale reti LSTM e una rete VGG \cite{simonyan2015vgg} per le immagini, ottenendo risultati preliminari adeguati per il task.
+In particolare, viene adottata una fusione multimodale che combina la codifica del testo con l'output dell'ultimo layer nascosto della VGG. 
+Gli embedding risultanti vengono quindi fusi tramite prodotto vettoriale, per poi passare infine da una piccola rete neurale che si occupa di effettuare un task di classificazione multiclasse predicendo una delle risposte possibili.
+Questo approccio prende quindi il nome di \textit{joint-embeddings}, grazie appunto alla combinazione delle codifiche della componente testuale e visiva che sta alla sua base.
+
+\subsection{Grad-CAM}
+
+Di grande utilità per la comprensione dei modelli basati su CNN è stata sicuramente la tecnica di localizzazione basata sul gradiente \textit{Grad-CAM} \cite{DBLP:journals/corr/SelvarajuDVCPB16}. 
+L'approccio si prefissa di usare i gradienti di un concetto obiettivo che confluisce nell'ultimo layer convoluzionale, che mantiene informazioni spaziali sull'immagine, per poi procedere a ritroso tramite retropropagazione per ottenere una \textit{heatmap} da sovrapporre all'immagine.
+
+Grazie all'applicazione del Grad-CAM nel VQA sono stati migliorati sia l'interpretabilità che l'efficacia dei modelli, fornendo uno strumento ulteriore per valutarne l'efficacia. 
+
+\subsection{Meccanismo di attenzione bottom-up e top-down}
+
+Viene proposta in \cite{DBLP:journals/corr/AndersonHBTJGZ17} una tecnica che si occupa per la prima volta in ambito VQA di proporre un sistema di attenzione a monte della metodologia proposta in \cite{DBLP:journals/corr/AntolALMBZP15}.
+Il meccanismo prevede una prima fase in cui si sfrutta un modello \textit{Faster R-CNN} come \textit{Region Proposal Network} (RPN) per il rilevamento di oggetti nell'immagine. 
+Le features rilevate all'interno dell'immagine in questa fase saranno le nostre features spaziali \textit{v}, che verranno in seguito combinate grazie a una rete LSTM con l'input testuale. 
+Questo passaggio permette quindi di andare a calcolare i pesi normalizzati per ogni feature rilevata nell'immagine, cosa che andrà a influenzare il modello per la scelta finale della risposta, proponendo quindi a valle del metodo la classificazione dell'etichetta corretta, cioè della risposta.
+
+La diffusione dell'approccio è stata garantita dall'innovazione rispetto all'uso di griglie fisse per l'estrazione di features dalle immagini che per diversi anni ha rappresentato lo standard per il trattamento delle immagini nel task. 
+Nonostante questa tecnica sia stata lo standard per alcuni anni, recentemente l'utilizzo dei transformers anche nel campo della Computer Vision ha dimostrato di poter non solo superare questo sistema, ma anche di performare con costi computazionali molto più bassi, come dimostrato da \cite{kim2021viltvisionandlanguagetransformerconvolution}.
+
+\subsection{Utilizzo di KB esterna}
+
+Nonostante il principio originale del VQA preveda di attingere soltanto all'immagine per le informazioni, vengono proposte alternative come \cite{10.1007/978-3-540-76298-0_52} che utilizzano basi di conoscenza esterne per, ad esempio, stabilire relazioni tra oggetti in forma di triplette: 
+
+\begin{quote}
+    $<$obj1, rel, obj2$>$
+\end{quote}
+
+L'obiettivo dietro questi approcci e dietro la creazione di queste KB è quello di risolvere la necessità, per alcune domande, di conoscenza pregressa del modello o di, banalmente, quello che viene definito nella letteratura relativa come \textit{common sense}, semplicemente buon senso.
+
+\section{Ambiti di applicazione}
+
+Nel tempo, lo spettro di applicazioni del VQA si è ampliato notevolmente, grazie alla possibilità di combinare l'interpretazione contestuale di testo e immagini per fornire informazioni rilevanti.
+
+\subsection{Analisi di grafici}
+
+Tra i casi d'uso che potrebbero sorprendere possiamo trovare l'analisi di grafici a partire non dai dati grezzi, ma bensì dalle immagini: è quello di cui si occupano modelli come Deplot \cite{liu2022deplot} di Google, che possono trovare la loro utilità per esempio nel mondo manageriale come tool di assistenza a analisti e responsabili in ambito commerciale.
+
+Ad esempio, un analista finanziario potrebbe caricare un grafico di andamento dei mercati e chiedere quale sia il valore massimo raggiunto da una particolare curva o quando si verifica un'intersezione.
+
+In ambito scientifico, un ricercatore può utilizzare il VQA per analizzare un grafico sperimentale e fare domande sulla pendenza di un tratto lineare o su un punto di picco.
+
+\subsection{Ambito Medico}
+
+In ambito medico troviamo diverse applicazioni di supporto, come la \textbf{diagnosi assistita}, in qualità di strumento di supporto ai medici nell'identificazione di patologie come tumori e polipi e nell'analisi di immagini diagnostiche (radiografie, endoscopie, risonanze magnetiche, etc.).
+
+Troviamo inoltre utilizzi nella \textbf{formazione medica}, in aiuto agli studenti che possono ricevere dinamicamente risposte a domande cliniche basate su immagini.
+
+Abbiamo infine il \textbf{supporto chirurgico} per l'identificazione di strumenti o aree specifiche in video di procedure mediche, e la \textbf{telemedicina} per l'assistenza remota ai pazienti, con spiegazioni dettagliate su ciò che viene visualizzato in tempo reale.
+
+\subsection{Sicurezza e Sorveglianza}
+
+Nel settore della sicurezza, il VQA può essere utilizzato per il \textbf{monitoraggio di sistemi di sorveglianza}, ad esempio nell'interpretazione in tempo reale di feed video per il riconoscimento di potenziali minacce. 
+Un'applicazione concreta è il monitoraggio di aeroporti, dove i modelli possono analizzare le telecamere di sicurezza per rilevare bagagli abbandonati o identificare comportamenti sospetti.
+Inoltre, nel \textbf{riconoscimento di oggetti e persone}, il VQA può essere impiegato per individuare veicoli specifici in una registrazione video o identificare individui basandosi su descrizioni fornite dagli operatori di sicurezza. 
+
+\subsection{Industria e Manutenzione}
+
+Nel settore industriale, il VQA trova applicazione nel \textbf{controllo qualità}. Ad esempio, in una catena di montaggio automobilistica, il modello può analizzare immagini di componenti per verificare che non siano presenti difetti o anomalie. 
+Può rispondere a domande relative alla presenza di difetti, come crepe su una superficie, o alla conformità di un pezzo rispetto agli standard di produzione.
+
+Per quanto riguarda il \textbf{supporto alla manutenzione}, il VQA può essere utilizzato per identificare guasti in macchinari complessi. Ad esempio, un modello addestrato su immagini di turbine eoliche potrebbe rilevare segni di usura o danneggiamento, rispondendo a domande sulla presenza di parti danneggiate o sul rilevamento e locazione di guasti presenti.
+
+\section{Obiettivi}
+
+Il VQA, soprattutto in ambito medico, rappresenta una importante sfida tecnologica. Nonostante siano stati sviluppati negli anni modelli sempre più avanzati, l'applicazione in ambito medico rimane limitata a causa di due fattori principali: la complessità intrinseca delle immagini diagnostiche e cliniche e la mancanza di dataset specializzati e sufficientemente eterogenei.
+ 
+Il dataset KvasirVQA\cite{gautam2024kvasirvqa} cerca di colmare questa lacuna offrendo un insieme unico di immagini, relative domande e risposte. 
+Se tuttavia i dati all'interno del dataset sono predisposti per utilizzi variegati (\textit{Image Captioning}, \textit{Text-based Image Generation} e classificazione di immagini), l'interesse verterà sulle tecniche di VQA. 
+
+Gli obiettivi principali della tesi saranno:
+
+\paragraph{Analisi del dataset} 
+Un obiettivo fondamentale della tesi è rappresentato dall'analisi approfondita del dataset, con lo scopo di comprenderne le caratteristiche principali e contestualizzarlo adeguatamente nel dominio medico, evidenziando sia le peculiarità rilevanti per le applicazioni del VQA in ambito diagnostico, sia i limiti e le imperfezioni che possono essere smussati per migliorare ulteriormente la qualità dei dati a disposizione.
+
+\paragraph{Valutazione delle tecniche e dei modelli} 
+La tesi si propone di valutare le tecniche e i modelli che rappresentano lo stato dell'arte nel campo del VQA, effettuando un confronto dettagliato in termini di accuratezza e capacità di comprensione dei dati, al fine di identificare le soluzioni più efficaci per il dominio medico.
+
+\paragraph{Test di modelli con variazioni procedurali e fine-tuning}  
+Verranno testati sia modelli a cui sono state applicate semplici variazioni procedurali, sia modelli che sono stati sottoposti a fine-tuning specifico sui dati, al fine di valutare l'impatto di entrambe le strategie sulle prestazioni complessive nel contesto del dataset analizzato.
+
+\paragraph{Identificazione delle debolezze dei modelli}  
+Verranno ricercati insight sulle possibili debolezze dei modelli, analizzando le prestazioni su diversi scenari e identificando i fattori principali che contribuiscono a eventuali limitazioni nei risultati ottenuti.
+
+\paragraph{Proposte per ricerche future}  
+Sulla base degli esperimenti e delle analisi condotte, verranno proposti spunti di miglioramento e nuove direzioni di ricerca, con l'obiettivo di avanzare ulteriormente lo stato dell'arte nel campo del VQA, in particolare nel dominio medico.
+
+Per il raggiungimento degli obiettivi descritti, la tesi si propone di approfondire i seguenti punti:
+
+\begin{itemize}
+    \item Prestazioni dei modelli su un dataset medico complesso come il KvasirVQA.
+    \item Aspetti dei dati che possono influenzare maggiormente le prestazioni dei modelli.
+    \item Ottimizzazione dei modelli per migliorarne l'efficacia.
+    \item Effetti di tecniche come il \textit{prompting} per l'arricchimento dell'elemento testuale.
+\end{itemize}
+
+L'analisi svolta contribuirà a migliorare la comprensione delle potenzialità del VQA in ambiente medico, in particolare nelle applicazioni relative al tratto gastrointestinale.
+
+\section{Struttura della tesi}
+
+La struttura della tesi è la seguente:
+
+\begin{enumerate}
+    \item Il primo capitolo è stato pensato per fornire una overview del lavoro svolto e delle motivazioni dietro la scelta degli argomenti;
+    \item Il secondo capitolo affronterà origine, problematiche e peculiarità legate al dataset KvasirVQA;
+    \item Il terzo capitolo esplorerà lo stato dell'arte del mondo del VQA;
+    \item Il quarto capitolo presenterà le modifiche sperimentali applicate ai modelli baseline;
+    \item Il quinto capitolo analizzerà i risultati sperimentali e confronterà le prestazioni delle diverse architetture testate;
+\end{enumerate}
+
+Nel prossimo capitolo verrà introdotto il dataset KvasirVQA, insieme alle analisi condotte per comprenderne le caratteristiche principali.
+
+\end{document}

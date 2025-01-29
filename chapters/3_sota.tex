@@ -1,0 +1,257 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\section{Introduzione}
+
+Alla luce delle peculiarità del dataset KvasirVQA, è fondamentale analizzare le tecniche e i modelli che hanno dominato il campo del VQA negli ultimi anni. 
+In questo capitolo verranno spiegati i dataset principali che hanno contribuito allo sviluppo del VQA, evidenziando brevemente le loro caratteristiche principali e il ruolo avuto nella definizione degli standard attuali, per una migliore contestualizzazione del KvasirVQA nel panorama dei dataset disponibili.
+
+A seguire, verranno introdotti i modelli e le tecniche applicate al VQA che negli anni hanno provato a essere particolarmente efficaci per la comprensione visiva e testuale.
+
+\section{Tecniche VQA}
+
+Sebbene la maggior parte dei progressi tecnologici della ricerca in ambito VQA siano concentrati sulle immagini, una parte importante della ricerca si è concentrata sullo studio di tecniche da applicare alla componente testuale, grazie soprattutto all'impiego di modelli basati su transformers. 
+Alcune tecniche si occupano per esempio di simulare un processo più simile al ragionamento umano per migliorare la capacità di ragionamento del modello stesso, o semplicemente per ricevere una spiegazione contestuale di come il modello sia arrivato a fornire una risposta a una determinata domanda.
+Stiamo parlando in particolare di tecniche di \textit{prompting}, ovvero tentativi di manipolazione dell'input testuale dei modelli linguistici per guidarlo nella generazione della risposta.
+Recentemente, per esempio, OpenAI ne ha fatto uso per la creazione del modello \textit{o1} \cite{jaech2024openai}, realizzando una soluzione basata su apprendimento rinforzato e \textit{Chain of Thought} (CoT).
+In campo scientifico possiamo vederne applicazioni sul già menzionato \textit{ScienceQA} in cui vediamo uno schema più ampio, in cui vengono coinvolti altri elementi aggiuntivi oltre all'immagine e al testo di domanda e risposta:
+
+\begin{itemize}
+    \item \textit{Question}: la domanda che viene posta al modello
+    \item \textit{Answer}: la risposta finale del modello
+    \item \textit{Lecture}: una breve spiegazione di carattere scientifico del contesto
+    \item \textit{Explanation}: una spiegazione che applica la \textit{lecture} a quello che è il contesto della domanda
+\end{itemize}
+
+Altri studi hanno invece dimostrato l'efficacia di utilizzare il prompting in diversi modi per affrontare dei task di VQA, come possiamo vedere in \cite{awal2024investigatingpromptingtechniqueszero}. 
+Il vantaggio fondamentale di queste tecniche risiede nel poter adattare un modello seguendo diverse implementazioni particolari della tecnica generale, rendendo il \textit{fine tuning} di un modello non necessario, risparmiando così le ingenti risorse che sarebbero necessarie altrimenti.
+Alcune di queste tecniche di prompting verranno approfondite ulteriormente nel prossimo capitolo, dal momento che saranno oggetto di sperimentazioni sul dataset scelto. 
+
+\subsection{Prompting}
+
+Verranno adesso analizzate brevemente alcune tecniche di prompting che hanno dimostrato poter portare a dei miglioramenti nelle performance dei VLM, prendendo in particolare spunto da quelle presentate in \cite{awal2024investigatingpromptingtechniqueszero}.
+
+\subsubsection{Templating}
+
+Il \textit{templating} è una tecnica di prompting che prevede l'uso di strutture predefinite e standardizzate per formulare input testuali. Questa metodologia aiuta a migliorare la comprensione del task, garantendo coerenza e chiarezza nell'interazione tra input e modello.
+
+La tecnica consiste nel creare schemi preformattati, chiamati appunto \textit{template}, che definiscono il formato e la struttura dell'input. Ogni template contiene elementi statici e dinamici:
+\begin{itemize}
+    \item \textbf{Elementi statici:} Parti fisse del prompt che forniscono il contesto, istruzioni generali o un'impostazione della risposta.
+    \item \textbf{Elementi dinamici:} Variabili che vengono riempite con informazioni specifiche del task, come una domanda, una descrizione testuale o una lista di opzioni possibili per la risposta.
+\end{itemize}
+
+Un template potrebbe avere una forma simile alla seguente: 
+
+\begin{quote}
+    \textit{"Dati l'immagine e la seguente domanda: '[Domanda]'.}
+    
+    \textit{Fornisci una risposta completa basata sui contenuti visivi e testuali.} 
+    
+    \text{Opzioni: ['Opzioni']."}
+\end{quote}
+Dove \textit{[Domanda]} e \textit{[Opzioni]} rappresentano gli elementi dinamici che cambiano per ogni esempio.
+
+Il templating è una tecnica che può portare diversi vantaggi, come una migliore interpretazione del task da parte del modello, una standardadizzazione di input e output per il modello e una certa flessibilità per l'adattamento a specifici task.
+
+In un contesto multimodale come quello del VQA dove è necessario integrare informazioni visive e testuali, può essere particolarmente utile. In questi casi, il template guida il modello nella fusione delle modalità, enfatizzando la rilevanza delle informazioni visive in relazione alla domanda.
+
+Nonostante i vantaggi, l'implementazione di questa tecnica presenta alcune sfide:
+\begin{itemize}
+    \item \textbf{Dipendenza dalla Formulazione:} Piccole variazioni nella struttura del template possono influire sulle prestazioni del modello.
+    \item \textbf{Bias:} Template mal progettati possono introdurre bias o guidare il modello verso risposte errate.
+\end{itemize}
+
+Il templating rappresenta una strategia potente e flessibile per migliorare le capacità di interpretazione e risposta dei VLM. La sua combinazione con altre tecniche di prompting, come il CoT, può ulteriormente potenziare l'efficacia del modello nei task complessi.
+
+\subsubsection{Zero-shot e few-shot prompting}
+
+Le tecniche di prompting \textit{few-shot} e \textit{zero-shot} rappresentano approcci fondamentali per sfruttare modelli in scenari con poca o nessuna supervisione esplicita. Entrambi i metodi sfruttano la capacità di generalizzare a compiti nuovi senza richiedere un addestramento specifico.
+
+\paragraph{Zero-shot Prompting}
+
+Il \textit{zero-shot prompting} consiste nel fornire al modello solo una descrizione testuale del task, senza esempi espliciti di input-output, facendo quindi uso della sua conoscenza pre-addestrata per inferire la risposta.
+
+Per un task di classificazione di sentimenti, ad esempio, un prompt zero-shot potrebbe essere:
+
+\begin{quote}
+    \textit{"Determina se il sentimento espresso nella seguente frase è positivo o negativo: }
+    
+    \textit{'Questo prodotto è fantastico'."}
+\end{quote}
+Il modello genera direttamente la risposta basandosi esclusivamente sulle informazioni fornite nel prompt.
+
+I vantaggi di questa tecnica sono evidenti, considerando soprattutto l'onere computazionale che rappresenta l'addestramento di specializzazione di modelli generici, andando quindi a sfruttare la rapidità e la versatilità dell'implementazione.  
+
+I modelli che ne fanno uso potrebbero tuttavia presentare prestazioni inferiori rispetto ad altri che utilizzano, per esempio, il few-shot in task più complessi, oltre a dipendere fortemente dalla chiarezza e dalla precisione del prompt.
+
+\paragraph{Few-shot Prompting}
+
+Il \textit{few-shot prompting} include alcuni esempi di input-output nel prompt per aiutare il modello a comprendere meglio il task. Questo approccio sfrutta la capacità del modello di generalizzare da pochi esempi forniti "on the fly".
+
+Per il medesimo task di classificazione dei sentimenti, un prompt few-shot potrebbe essere:
+\begin{quote}
+    \textit{"Classifica il sentimento come positivo o negativo.}  
+    
+    \textit{Esempi:}  
+    
+    \textit{1. 'Il cibo era delizioso.' \textrightarrow Positivo}  
+    
+    \textit{2. 'Il servizio era pessimo.' \textrightarrow Negativo}  
+    
+    \textit{Ora analizza: 'Questo prodotto è fantastico'."}
+\end{quote}
+Il modello utilizza quindi gli esempi forniti per formulare la risposta.
+
+Oltre a godere degli stessi vantaggi dello zero-shot, può essere sicuramente più performante su task che vanno ad essere più complessi, così come soffrire degli stessi problemi, come la dipendenza dal prompt utilizzato che può anche appesantire, in caso di prompt più lunghi e specializzanti, il costo computazionale.
+
+\paragraph{Confronto tra Zero-shot e Few-shot Prompting}
+
+\begin{itemize}
+    \item \textbf{Contesto d'uso:} Lo zero-shot è preferibile per task generici o ben definiti, mentre il few-shot è più adatto a scenari complessi o ambigui.
+    \item \textbf{Dipendenza dagli esempi:} Lo zero-shot non utilizza esempi, mentre il few-shot richiede una selezione accurata degli esempi.
+    \item \textbf{Efficienza:} Lo zero-shot è più rapido e meno costoso in termini computazionali, mentre il few-shot può essere più efficace ma richiede maggiore memoria e attenzione alla progettazione del prompt.
+\end{itemize}
+
+\subsubsection{Chain-of-Thought}
+
+Il \textit{Chain of Thought} (CoT) è una tecnica di prompting che guida i modelli nel generare risposte complesse attraverso un ragionamento esplicito e passo-passo. L'approccio si basa sull'idea che l'esplicitazione del processo logico possa migliorare l'accuratezza e la comprensione del task, specialmente nei problemi che richiedono ragionamenti complessi.
+
+Il CoT incoraggia il modello a seguire una sequenza logica di passaggi per arrivare alla risposta finale. Invece di generare direttamente la risposta, il modello elabora ogni fase del ragionamento, migliorando la trasparenza e riducendo gli errori nei calcoli o nei passaggi intermedi.
+
+Per un problema matematico, un esempio di CoT potrebbe essere:
+\begin{quote}
+    \textit{"Ci sono tre mele in ogni cestino e quattro cestini. Quante mele ci sono in totale?  
+    Ragiona passo per passo:  
+    1. Ogni cestino contiene tre mele.  
+    2. Ci sono quattro cestini in totale.  
+    3. Moltiplico tre per quattro.  
+    4. Risultato: ci sono dodici mele in totale."}
+\end{quote}
+
+Il CoT consente sicuramente ai modelli di affrontare problemi complessi suddividendoli in parti più gestibili, utilizzando un approccio di risoluzione del problema di tipo \textit{divide et impera} e portando sì a una generalizzazione per l'adattamento a un task specifico, ma anche a una maggiore trasparenza grazie ai passaggi logici che vengono esplicitati.
+Può inoltre essere pensata come una tecnica che permette il debug del modello.
+
+Il CoT è particolarmente efficace nella risoluzione di problemi in cui la logica è di primaria importanza, come problemi matematici e scientifici \cite{lu2022learnexplainmultimodalreasoning} e domande aperte nel VQA per cui il modello fornisce spiegazioni sulle informazioni visive.
+
+Il CoT può essere implementato in combinazione con tecniche di prompting come il \textit{few-shot} e il \textit{templating}. Ad esempio:
+\begin{quote}
+    \textit{"Esempi:  
+    1. Qual è la somma di 2 e 3? Ragiona passo per passo:  
+    - Primo passo: Determina il valore di 2.  
+    - Secondo passo: Determina il valore di 3.  
+    - Somma: 2 + 3 = 5.  
+    Ora risolvi: Qual è il doppio di 6?"}
+\end{quote}
+
+Nonostante i vantaggi, il CoT presenta alcune limitazioni condivise con altri approcci di prompting già visti, ovvero la dipendenza dal prompt, fattore che può portare a sviluppare un bias nelle risposte, e un costo computazionale che cresce insieme alla complessità del ragionamento necessario per la formulazione della risposta.
+
+Il Chain of Thought rappresenta una potente tecnica di prompting per migliorare il ragionamento e l'accuratezza nei modelli di grandi dimensioni. La sua capacità di scomporre problemi complessi in passaggi logici lo rende un elemento chiave nei task che richiedono comprensione profonda e ragionamenti articolati.
+
+\section{Modelli}
+
+Dopo aver analizzato alcune tecniche core dei VLM moderni, passiamo adesso ad un'analisi dei principali modelli multimodali presenti.
+
+\subsection{Vision Transformer (ViT)}
+
+Il \textit{Vision Transformer (ViT)} \cite{dosovitskiy2021imageworth16x16words} è una delle prime architetture basate su \textit{Transformer} applicate al dominio visivo. A differenza delle tradizionali CNN, che utilizzano convoluzioni per estrarre caratteristiche dalle immagini, ViT adotta un approccio ispirato ai Transformer originariamente introdotti per l'NLP.
+ViT divide l'immagine di input in una griglia di patch quadrate di dimensione fissa, trattando ciascun patch come un "token" analogo alle parole in un modello NLP. Ogni patch viene quindi trasformato in un embedding vettoriale tramite una proiezione lineare. Questi embedding, insieme a un embedding di posizione, vengono forniti al Transformer, che applica meccanismi di attenzione per elaborare le relazioni tra i patch. 
+Grazie alla capacità di catturare relazioni globali tra i patch, ViT ha mostrato una maggiore efficienza rispetto alle CNN tradizionali, specialmente su immagini ad alta risoluzione.
+
+\subsection{Vision-and-Language Transformer (ViLT)}
+
+Il \textit{Vision-and-Language Transformer (ViLT)} \cite{kim2021viltvisionandlanguagetransformerconvolution} è un'estensione del concetto di Transformer al dominio multimodale, progettato per combinare informazioni visive e testuali. ViLT affronta task come il \textit{Visual Question Answering (VQA)} integrando immagini e testo in un unico spazio rappresentativo.
+
+A differenza di molti modelli multimodali che utilizzano un backbone visivo pre-addestrato separato, tecnica comunemente nota come \textit{Vision-Language Pretraining}, ViLT elimina la necessità di un estrattore di caratteristiche visive dedicato. Le immagini vengono direttamente convertite in patch e fornite al Transformer insieme ai token testuali. 
+Il modello utilizza un unico Transformer per elaborare entrambe le modalità contemporaneamente ed è progettato specificatamente per task multimodali.
+
+ViT e ViLT condividono l'idea di utilizzare i Transformer per elaborare le immagini, ma differiscono per finalità e architettura:
+\begin{itemize}
+    \item \textbf{Dominio:} ViT è progettato esclusivamente per compiti visivi, mentre ViLT è orientato a task multimodali che combinano immagini e testo.
+    \item \textbf{Backbone visivo:} ViT utilizza esclusivamente immagini come input, mentre ViLT incorpora anche input testuali, eliminando la necessità di un backbone visivo separato.
+    \item \textbf{Applicazioni:} ViT è focalizzato su task come classificazione e segmentazione di immagini, mentre ViLT affronta task come VQA.
+    \item \textbf{Efficienza:} ViLT è più leggero dal punto di vista computazionale grazie alla sua architettura unificata, ma può perdere in precisione visiva rispetto a modelli con backbone separati.
+\end{itemize}
+
+\subsection{Contrastive Language–Image Pretraining(CLIP)}
+
+\textit{CLIP} (\textbf{Contrastive Language–Image Pretraining}) \cite{radford2021learningtransferablevisualmodels} è un modello multimodale sviluppato da OpenAI che apprende a collegare immagini e descrizioni testuali in un unico spazio rappresentativo. Questo approccio innovativo si basa sull'apprendimento contrastivo, consentendo a CLIP di associare immagini e testi senza la necessità di un addestramento supervisionato specifico per il task.
+
+CLIP utilizza due encoder separati:
+\begin{itemize}
+    \item Un \textbf{encoder visivo}, che può essere basato su modelli come ResNet o Vision Transformer (ViT), per estrarre caratteristiche dalle immagini.
+    \item Un \textbf{encoder testuale}, basato su Transformer, che rappresenta il testo in un embedding denso.
+\end{itemize}
+Questi encoder generano rappresentazioni indipendenti di immagini e testo, mappandoli in uno spazio latente condiviso. Il modello è addestrato a massimizzare la similarità tra coppie corrette (immagine-testo) e a minimizzare la similarità tra coppie errate.
+
+CLIP è stato addestrato su un dataset composto da 400 milioni di coppie immagine-testo raccolte da Internet. Questo ampio corpus non supervisionato consente al modello di generalizzare a un'ampia varietà di compiti senza necessità di fine-tuning.
+
+Nonostante i risultati promettenti, CLIP presenta alcune limitazioni:
+\begin{itemize}
+    \item \textbf{Bias nei dati:} Essendo addestrato su dati raccolti da Internet, CLIP può riflettere i bias presenti nei dati.
+    \item \textbf{Prestazioni limitate in contesti specifici:} CLIP può avere difficoltà con compiti che richiedono una comprensione specialistica, come nel dominio medico.
+    \item \textbf{Dipendenza dalla qualità dei prompt:} La formulazione del testo gioca un ruolo cruciale nelle performance del modello.
+\end{itemize}
+
+CLIP rappresenta un esempio di successo nell'integrazione di informazioni visive e testuali in un unico spazio rappresentativo. Le sue capacità di generalizzazione e il supporto ai compiti zero-shot lo rendono un modello di riferimento per approcci multimodali. Nel contesto del VQA, CLIP può essere utilizzato come feature extractor o come punto di partenza per approcci basati su prompting, fornendo una base solida per migliorare la comprensione visivo-testuale.
+
+\subsection{Bootstrapping Language-Image Pre-training(BLIP)}
+
+\textbf{BLIP (Bootstrapping Language-Image Pre-training)} \cite{li2022blipbootstrappinglanguageimagepretraining} è un modello multimodale progettato per affrontare compiti che richiedono l'integrazione di dati visivi e testuali, come il VQA, \textit{Image Captioning} e il \textit{Image-Text Retrieval}. L'architettura di BLIP combina un encoder visivo e un decoder testuale, costruiti per massimizzare l'allineamento tra immagini e descrizioni testuali durante la fase di pretraining.
+
+Il modello utilizza una base ViT come encoder visivo per estrarre rappresentazioni ricche dalle immagini, mentre il decoder testuale si basa su un Transformer standard, ottimizzato per generare descrizioni coerenti e contestuali. BLIP è addestrato utilizzando un ampio corpus di dati immagine-testo, con tecniche di apprendimento contrastivo e generativo per migliorare la qualità delle rappresentazioni multimodali.
+
+Uno degli aspetti chiave di BLIP è la sua capacità di adattarsi a diversi task multimodali tramite fine-tuning, sfruttando l'allineamento già appreso durante il pretraining. Per il task di VQA, il modello si distingue per la sua capacità di comprendere domande in linguaggio naturale e di rispondere basandosi sui contenuti visivi, grazie a una fusione efficace delle modalità.
+
+Tuttavia, BLIP presenta alcune limitazioni intrinseche, come una complessità computazionale relativamente alta e la dipendenza da un numero significativo di dati annotati per ottenere risultati ottimali nei task specifici. Nonostante ciò, ha rappresentato un importante punto di partenza per successive evoluzioni nei modelli multimodali.
+
+\subsection{Generative Image-to-Text Transformer (GIT)}
+
+Il \textit{GIT} (Generative Image-to-Text Transformer) \cite{wang2022gitgenerativeimagetotexttransformer} utilizza un'architettura semplificata basata su Transformer.
+
+Oltre al VQA, GIT è stato applicato con successo a diversi compiti, tra cui:
+\begin{itemize}
+    \item \textbf{Image Captioning:} Generazione di descrizioni testuali per immagini.
+    \item \textbf{Video Captioning:} Creazione di descrizioni per contenuti video.
+\end{itemize}
+
+GIT ha stabilito nuovi standard in vari benchmark, superando le prestazioni umane in alcuni casi. Ad esempio, ha ottenuto un punteggio CIDEr di 138,2 su TextCaps, rispetto al punteggio umano di 125,5.
+
+Grazie alla sua architettura semplice e diretta che combina un encoder di immagini con un decoder di testo, elimina la necessità di moduli esterni complessi, semplificando l'architettura complessiva. 
+
+Grazie a questa struttura, GIT si distingue per la sua efficienza computazionale e per le prestazioni all'avanguardia in compiti come la didascalizzazione di immagini e video. La semplicità dell'architettura consente di bilanciare efficacemente capacità di generalizzazione e velocità di addestramento.
+
+\subsection{Large Language and Vision Assistant (LLaVA) e LLaVA-Med}
+
+\textit{LLaVA} (\textbf{Large Language and Vision Assistant}) \cite{liu2023visualinstructiontuning} è un modello multimodale open-source progettato per integrare input visivi e testuali, consentendo la generazione di risposte basate su entrambi i tipi di dati e sfruttando un approccio basato sul \textit{Visual Instruction Tuning}.
+
+LLaVA utilizza un encoder visivo pre-addestrato, come CLIP, e lo collega a un LLM tramite una matrice di proiezione adattabile. Questo setup permette la trasformazione delle rappresentazioni visive in embedding testuali condivisi, migliorando l'interazione multimodale.
+
+Nonostante l'addestramento su un dataset relativamente ridotto di circa 80.000 immagini, LLaVA ha dimostrato un'elevata efficacia, raggiungendo prestazioni comparabili a quelle di GPT-4 in compiti multimodali specifici.
+
+LLaVA-Med \cite{li2023llavamedtraininglargelanguageandvision} è un adattamento di LLaVA specifico per il dominio medico, progettato per affrontare sfide diagnostiche e interpretative basate su immagini cliniche. Questo modello utilizza un approccio simile a LLaVA ma è stato ottimizzato per elaborare dati medici, come immagini di radiografie o scansioni diagnostiche, insieme a domande in linguaggio naturale.
+
+Entrambe le configurazioni hanno permesso di esplorare il potenziale di modelli multimodali nel dominio medico, valutandone la capacità di gestire task complessi, come la classificazione delle anomalie e la risposta a domande specifiche relative a strumenti o procedure.
+
+\subsection{Florence-2}
+
+\textit{Florence-2} \cite{xiao2023florence2advancingunifiedrepresentation} è un modello sviluppato da Microsoft che rappresenta uno dei sistemi di fondazione visiva più avanzati. Il modello è stato progettato per gestire molteplici compiti di visione artificiale utilizzando una rappresentazione unificata basata su prompt testuali, rendendolo altamente adattabile a diversi scenari.
+
+Florence-2 adotta un'architettura sequence-to-sequence per elaborare input visivi e generare output testuali corrispondenti al compito specifico. Il modello è stato addestrato su FLD-5B, un dataset non ancora rilasciato di 5,4 miliardi di annotazioni su 126 milioni di immagini, utilizzando un processo iterativo di annotazione e raffinamento.
+
+Grazie al suo addestramento su larga scala e alla struttura innovativa, Florence-2 ha dimostrato eccellenti capacità di zero-shot e prestazioni superiori su compiti visivi standard. Nonostante Florence-2 non supporti originalmente il task di VQA e si concentri maggiormente sul captioning, è comunque possibile fare fine-tuning per adattarlo anche a questo task.
+
+\subsection{GPT-4V}
+
+\textit{GPT-4V} \cite{2023GPT4VisionSC} è un'estensione del modello GPT-4 di OpenAI, progettata per includere capacità visive oltre a quelle linguistiche. Questo modello consente l'elaborazione simultanea di input testuali e visivi, rendendolo particolarmente utile per compiti multimodali avanzati.
+
+Sebbene i dettagli architetturali completi di GPT-4V non siano stati divulgati, è noto che il modello utilizza tecniche di embedding condivisi per unificare la rappresentazione visiva e testuale. Questa architettura permette al modello di interpretare e rispondere a domande complesse che coinvolgono informazioni visive e linguistiche in modo integrato.
+
+GPT-4V si distingue per la sua capacità di ragionamento multimodale e per le sue applicazioni nei campi dell'assistenza visiva e dell'interazione utente naturale.
+
+\section{Conclusione}
+
+In questo capitolo sono state analizzate le tecniche principali e i modelli che hanno guidato lo sviluppo del VQA. 
+Questa panoramica fornisce il contesto necessario per comprendere le strategie sperimentali adottate nella tesi, che verranno esplorate nei capitoli successivi.
+
+\end{document}

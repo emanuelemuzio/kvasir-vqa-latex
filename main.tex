@@ -1,0 +1,57 @@
+\documentclass[a4paper,12pt]{report}
+\usepackage{unipa-thesis}
+\usepackage{subfiles}
+\usepackage{float}
+\usepackage{gensymb}
+\usepackage{amsmath}
+\usepackage{textcomp}
+\usepackage{glossaries}
+\usepackage[utf8]{inputenc}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage[export]{adjustbox}
+
+\renewcommand{\schooltitle}{Dipartimento di Ingegneria} 
+\renewcommand{\coursename}{Ingegneria Informatica - LM 32}
+\renewcommand{\departmentname}{Curriculum Intelligenza Artificiale}
+\renewcommand{\thesistitle}{Tecniche sperimentali per i Vision-Language Models applicate al KvasirVQA}
+\renewcommand{\authorname}{Emanuele Muzio}
+\renewcommand{\advisorname}{Marco La Cascia}
+\renewcommand{\academicyear}{2023 - 2024}
+\renewcommand{\contentsname}{Indice}
+\renewcommand{\chaptername}{Capitolo}
+\renewcommand{\bibname}{Bibliografia}
+
+\begin{document}
+
+\titlepagecontent
+
+\tableofcontents
+
+\chapter{Introduzione}
+\subfile{chapters/1_introduzione}
+
+\chapter{Dataset}
+\subfile{chapters/2_dataset}
+
+\chapter{Stato dell'arte}
+\subfile{chapters/3_sota}
+
+\chapter{Approccio Proposto}
+\subfile{chapters/4_approccio-proposto}
+
+\chapter{Esperimenti}
+\subfile{chapters/5_esperimenti}
+
+\chapter{Conclusione}
+\subfile{chapters/6_conclusione}
+
+\chapter{Glossario}
+\subfile{glossario}
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}

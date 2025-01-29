@@ -1,0 +1,27 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+Il lavoro svolto in questa tesi si è concentrato sull'applicazione delle tecniche di VQA al dominio medico, con un focus specifico sul dataset \textit{KvasirVQA}, una risorsa progettata per affrontare domande relative ad immagini gastroenterologiche. Lo studio ha esplorato approcci diversificati, tra cui il fine-tuning di modelli multimodali e l'adozione di tecniche di prompting, al fine di analizzare la capacità dei modelli di combinare informazioni visive e testuali in uno scenario complesso e specialistico.
+
+La prima fase della tesi ha riguardato l'analisi del dataset KvasirVQA, evidenziando le sue caratteristiche principali, come la natura multimodale delle annotazioni e la loro rilevanza clinica. Tuttavia, l'analisi ha anche portato alla luce alcune criticità, come la distribuzione sbilanciata delle classi e la presenza di dati rumorosi, che hanno richiesto interventi mirati di \textit{data augmentation} per ottimizzare le condizioni di addestramento dei modelli. Questi interventi si sono dimostrati cruciali per affrontare la complessità intrinseca del dataset e per garantire una base adeguata per la valutazione delle tecniche sperimentate.
+
+Tra i modelli testati, \textit{ViLT} ha mostrato prestazioni significativamente superiori rispetto all'architettura \textit{Custom}, dimostrando l'importanza del pre-addestramento su dataset di grandi dimensioni e l'efficacia di un'architettura unificata per integrare immagini e testo. Tuttavia, l'approccio di fine-tuning ha evidenziato alcune limitazioni, tra cui la dipendenza dalla qualità e quantità dei dati e l'elevato costo computazionale associato all'addestramento su dataset complessi. Questi aspetti hanno sottolineato la necessità di ottimizzare sia i modelli che i dataset per migliorare l'accessibilità e la scalabilità delle soluzioni basate su VQA.
+
+Parallelamente, sono state esplorate tecniche di prompting, come il \textit{templating} e il \textit{Chain-of-Thought}, che offrono un'alternativa al fine-tuning, permettendo di guidare i modelli pre-addestrati attraverso istruzioni esplicite. Queste tecniche si sono dimostrate vantaggiose in termini di flessibilità e riduzione dei costi computazionali, ma hanno presentato criticità legate alla sensibilità alla progettazione dei prompt. In particolare, sono state osservate risposte incoerenti o allucinazioni in presenza di prompt mal strutturati, evidenziando la necessità di una maggiore standardizzazione e controllo nella loro implementazione.
+
+Un altro aspetto significativo affrontato in questa tesi è stata l'introduzione del task di classificazione multilabel come alternativa al tradizionale approccio multiclasse. Questo ha permesso di rappresentare meglio la complessità delle risposte nel dataset KvasirVQA, riducendo le rigidità tipiche della classificazione multiclasse e migliorando le prestazioni dei modelli, in particolare nel caso del \textit{Custom}. L'adozione di questo approccio ha inoltre evidenziato il potenziale per ulteriori innovazioni nell'adattamento dei task ai requisiti specifici del dataset.
+
+Infine, sono state impiegate tecniche di interpretabilità, come \textit{Grad-CAM}, per analizzare le attivazioni dei modelli durante l'inferenza del modello \textit{Custom}. Queste analisi hanno fornito insight preziosi sul comportamento dei modelli e sulla loro capacità di focalizzarsi sugli elementi visivi rilevanti, contribuendo a una comprensione più approfondita delle loro prestazioni e limitazioni.
+
+Sebbene il lavoro svolto abbia prodotto risultati promettenti, sono emerse diverse sfide che suggeriscono direzioni per la ricerca futura: 
+
+\begin{itemize} 
+    \item \textbf{Espansione del dataset:} Ampliamento del KvasirVQA con un maggior numero di immagini e annotazioni più dettagliate, al fine di migliorare l'addestramento dei modelli e ridurre lo sbilanciamento delle classi. 
+    \item \textbf{Ottimizzazione dei modelli:} Sviluppo di modelli multimodali più leggeri e meno costosi in termini computazionali ma mantenendo prestazioni competitive.
+    \item \textbf{Miglioramento del prompting:} Esplorazione di tecniche di prompting avanzate, come il \textit{dynamic templating}, per adattare dinamicamente i prompt alle caratteristiche delle domande e delle immagini. 
+    \item \textbf{Maggiore interpretabilità:} Combinazione di tecniche come \textit{Grad-CAM} con approcci innovativi per analizzare le rappresentazioni interne dei modelli, migliorando la trasparenza e la fiducia negli output generati. 
+    \item \textbf{Generalizzazione ad altri domini:} Applicazione delle metodologie sviluppate ad altri contesti clinici e scientifici, per verificare la generalizzabilità dei risultati ottenuti. 
+\end{itemize}
+
+In conclusione, questa tesi rappresenta un contributo significativo nell'applicazione del VQA al dominio medico, dimostrando come tecniche avanzate di machine learning possano essere utilizzate per affrontare task complessi in ambiti specialistici. I risultati ottenuti evidenziano il potenziale delle tecnologie multimodali per migliorare la comprensione e l'analisi di immagini diagnostiche, fornendo al contempo una base per ulteriori sviluppi nel campo del VQA e delle sue applicazioni in ambito medico.
+\end{document}
